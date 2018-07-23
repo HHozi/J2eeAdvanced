@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.snailclimb.dao.UserMapper">
+	<select id="selecAgreesTop10" parameterType="User" resultType="User">
+		SELECT
+		`agrees`, `username`
+		FROM
+		`spider_zhihu_crawler`.`user`
+		GROUP BY
+		`agrees`
+		ORDER BY `agrees` DESC LIMIT 0,9;
+	</select>
+</mapper>
