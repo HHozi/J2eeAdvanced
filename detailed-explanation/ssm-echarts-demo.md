@@ -1,9 +1,10 @@
+![知乎赞同数Top10](https://user-gold-cdn.xitu.io/2018/7/24/164cb3b1675fb2c6)
 ## 一 前言
 
 ### 1.1  60w知乎网名的数据从何而来？
 去年在接触Java爬虫的时候，接触到了一个关于知乎的爬虫。个人觉得写的非常好，当时抓取的效率和成功率还是特别特别高，现在可能知乎反扒做的更好，这个开源知乎爬虫没之前抓取的那么顺利了。我记得当时在我的i7+8g的机器上爬了将近两天，大概爬取了**60多w**的数据。当然，实际抓取的用户数据数量肯定比这个多，只是持久化过程不同步而已，也就是抓取的好几个用户可能只有一个存入数据库中。
 
-最后，本文提供的知乎数据是2017年12月份左右抓取的数据。
+最后，本文提供的知乎网名数据是2017年12月份左右抓取的数据。
 
 **60w知乎网名数据：**
 
@@ -43,6 +44,8 @@
 ![运行](https://user-gold-cdn.xitu.io/2018/7/24/164ca60dff46deeb?w=800&h=640&f=png&s=41248)
 
 **这里提一点：@ResponseBody注解要把对象转换成json格式，所以需要添加相关转换依赖的jar包（jackson）**
+
+**pom.xml**
 
 ```xml
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -552,6 +555,8 @@ jdbc.password=xxxxxx
 ```
 #### 2.3.5 web.xml：
 ![web.xml配置文件](https://user-gold-cdn.xitu.io/2018/7/24/164ca7060eec99a3?w=289&h=290&f=png&s=11519)
+
+**web.xml**
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -1226,4 +1231,18 @@ public class UserController {
 
 最后，本项目只是一个演示，还有很多需要优化的地方。比如可以使用redis来做缓存提高查询速度、可以创建索引提高查询速度或者直接将查询到的数据缓存下来等等方法来提高查询速度。
 
+## 五 补充
 
+### 使用索引优化查询速度：
+效果图如下，可以看到明显查询速度快了很多。
+![](https://user-gold-cdn.xitu.io/2018/7/24/164cc232fe4daec7?w=1370&h=649&f=gif&s=431697)
+
+
+我使用的是SQLyoy创建的索引，具体方法如下图所示：
+
+![SQLyoy创建索引](https://user-gold-cdn.xitu.io/2018/7/24/164cc256d65b6266?w=1115&h=456&f=png&s=56412)
+
+
+> 如果想要获取更多我的原创文章，欢迎关注我的微信公众号:"**Java面试通关手册**" 。无套路，希望能与您共同进步，互相学习。
+
+![](https://user-gold-cdn.xitu.io/2018/7/5/1646a3d308a8db1c?w=258&h=258&f=jpeg&s=27034)
