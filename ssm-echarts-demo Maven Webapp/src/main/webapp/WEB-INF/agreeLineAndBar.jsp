@@ -23,9 +23,9 @@
 
 </head>
 <script type="text/javascript"
-	src="${pageContext.request.contextPath}/static/echarts/jquery-3.3.1.min.js"></script>
+	src="${pageContext.request.contextPath}/js/jquery-3.3.1.min.js"></script>
 <script type="text/javascript"
-	src="${pageContext.request.contextPath}/static/echarts/echarts.js"></script>
+	src="${pageContext.request.contextPath}/js/echarts.js"></script>
 <body>
 	<!-- 显示Echarts图表 -->
 	<div style="height:410px;min-height:100px;margin:0 auto;" id="main"></div>
