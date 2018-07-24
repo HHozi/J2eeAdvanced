@@ -8,4 +8,4 @@
 
 **项目讲解：** [：https://github.com/Snailclimb/J2ee-Advanced/blob/master/detailed-explanation/ssm-echarts-demo.md](https://github.com/Snailclimb/J2ee-Advanced/blob/master/detailed-explanation/ssm-echarts-demo.md)
 
-**项目优化：** ①由于赞同数和人名我们需要经常查询，所以考虑使用索引。我使用SQLyog图形化数据库编辑器为数据库的agrees字段和username字段添加索引。索引添加完成之后，速度明显快了很多很多，60w中查出前10的数据也是在1s之内就可以完成。
+**项目优化：** ①由于赞同数和人名我们需要经常查询，所以考虑使用索引。我使用SQLyog图形化数据库编辑器为数据库的agrees字段和username字段添加索引。索引添加完成之后，速度明显快了很多很多，60w中查出前10的数据仅仅在1s之内就可以完成。
