@@ -1,5 +1,11 @@
 package com.snailclimb.bean;
 
+/**
+ * 用户实体类
+ * 
+ * @author Snailclimb
+ *
+ */
 public class User {
 	private Integer id;
 

@@ -49,12 +49,14 @@ public class UserController {
 		return results;
 	}
 
-	// 跳转到主页
+	// 跳转到圆饼图展示
 	@RequestMapping(value = "/intoagreePie")
 	public String intoagreePie() {
 		return "agreePie";
 
 	}
+
+	// 跳转到折线图和直方图
 	@RequestMapping(value = "/intoagreeLineAndBar")
 	public String Index() {
 		return "agreeLineAndBar";

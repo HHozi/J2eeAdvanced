@@ -28,7 +28,7 @@
 	<br>
 	<a href="echarts/intoagreeLineAndBar">知乎前10赞同数(折线图和柱状图)</a>
 	<br>
-	<a href="echarts/test3">动态取学生数据报表显示(圆饼图)</a>
+	<a href="http://echarts.baidu.com/">Echarts官网</a>
 	<script type="text/javascript">
 	</script>
 </body>

@@ -59,7 +59,7 @@
 				data : [ '赞同数', ]
 			},
 			color : [
-				'#FF3333', //成绩曲线颜色
+				'#FF3333', //曲线颜色
 			],
 			toolbox : {
 				feature : {
@@ -74,6 +74,7 @@
 					restore : {
 						show : true
 					},
+					//保存图片选项
 					saveAsImage : {
 						show : true
 					}
@@ -87,7 +88,7 @@
 				{
 					//第一个（左边）Y轴，yAxisIndex为0
 					type : 'value',
-					name : '成绩',
+					name : '赞同数',
 					/* max: 120,
 					min: -40, */
 					//yAxis.scale:boolean 是否是脱离 0 值比例。设置成 true 后坐标刻度不会强制包含零刻度。在双数值轴的散点图中比较有用。在设置 min 和 max 之后该配置项无效
@@ -104,7 +105,7 @@
 			//series[i]:系列列表。每个系列通过 type 决定自己的图表类型
 			series : [ //系列（内容）列表                      
 				{
-					name : '成绩',
+					name : '赞同数',
 					type : 'line', //折线图表示（生成温度曲线）
 					symbol : 'emptycircle', //设置折线图中表示每个坐标点的符号；emptycircle：空心圆；emptyrect：空心矩形；circle：实心圆；emptydiamond：菱形	                    
 					data : [] //数据值通过Ajax动态获取

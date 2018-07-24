@@ -1,5 +1,11 @@
 package com.snailclimb.bean;
 
+/**
+ * 圆饼图展示的时候需要使用到的对象
+ * 
+ * @author Snailclimb
+ *
+ */
 public class ScoreResult {
 	public int value; // 点赞数
 	public String name;// 人名
