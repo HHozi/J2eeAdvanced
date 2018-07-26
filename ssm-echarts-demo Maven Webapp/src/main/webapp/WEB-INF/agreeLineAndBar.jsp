@@ -35,13 +35,19 @@
 	
 		// 指定图表的配置项和数据
 		var option = {
+			//标题
 			title : { //图表标题
-				text : '知乎前10赞同数'
+				text : '知乎前10赞同数', //主标题
+				subtext : 'SSM实现知乎前10赞同数统计', //副标题
+			//borderColor : 'red', //边框颜色
+			//borderWidth : 10, //边框宽度
+			// Left
 			},
 			tooltip : {
 				trigger : 'axis', //坐标轴触发提示框，多用于柱状、折线图中
 	
 			},
+			//缩放视图
 			dataZoom : [
 				{
 					type : 'slider', //支持鼠标滚轮缩放
@@ -64,14 +70,17 @@
 			],
 			toolbox : {
 				feature : {
+					//dataView:数据视图
 					dataView : {
 						show : true,
 						readOnly : false
 					},
+					//动态类型切换
 					magicType : {
 						show : true,
 						type : [ 'line', 'bar' ]
 					},
+					//还原
 					restore : {
 						show : true
 					},
@@ -85,9 +94,8 @@
 				type : 'category',
 				data : [] //先设置数据值为空，后面用Ajax获取动态数据填入
 			},
-			yAxis : [ 
+			yAxis : [
 				{
-
 					type : 'value',
 					name : '赞同数',
 					/* max: 120,
@@ -109,8 +117,25 @@
 					name : '赞同数',
 					type : 'line', //折线图表示（生成温度曲线）
 					symbol : 'emptycircle', //设置折线图中表示每个坐标点的符号；emptycircle：空心圆；emptyrect：空心矩形；circle：实心圆；emptydiamond：菱形	                    
-					data : [] //数据值通过Ajax动态获取
-				}
+					data : [], //数据值通过Ajax动态获取
+					//图标上显示出最大值和最小值
+					markPoint : {
+						data : [ {
+							type : 'max',
+							name : '最大值'
+						}, {
+							type : 'min',
+							name : '最小值'
+						} ],
+					},
+					//图标上显示平局值
+					markLine : {
+						data : [ {
+							type : 'average',
+							name : '平均值'
+						} ]
+					}
+				},
 			]
 		};
 		//数据加载完之前先显示一段简单的loading动画,在数据加载完成后调用 hideLoading 隐藏加载动画。
