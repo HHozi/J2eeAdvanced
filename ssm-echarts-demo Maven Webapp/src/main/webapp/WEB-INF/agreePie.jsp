@@ -25,26 +25,32 @@
 	src="${pageContext.request.contextPath}/js/echarts.js"></script>
 <body>
 	<!-- 显示Echarts图表 -->
-	<div style="height:410px;min-height:100px;margin:0 auto;" id="main"></div>
+	<div id="main" style="width: 500px;height: 300px;">
+	</div>
+	
+	<div id="main2" style="width: 500px;height: 300px;"></div>
 	<script>	//初始化echarts var pieCharts =
 		//初始化echarts
 		var pieCharts = echarts.init(document.getElementById("main"));
+		//var pieCharts = echarts.init(document.getElementById("main2"));
 		//设置属性
 		pieCharts.setOption({
 			title : {
 				text : '赞同数',
 				subtext : '赞同数比',
-				x : 'center'
+				x : 'center' //title显示的位置
 			},
 			tooltip : {
 				trigger : 'item',
 				formatter : "{a} <br/>{b} : {c} ({d}%)"
 			},
+			//图例
 			legend : {
 				orient : 'vertical',
 				x : 'left',
 				data : []
 			},
+			//工具箱
 			toolbox : {
 				show : true,
 				feature : {
@@ -66,6 +72,7 @@
 				}
 			},
 			calculable : true,
+			//数据
 			series : [
 				{
 					name : '赞同数',

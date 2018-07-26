@@ -54,6 +54,7 @@
 					end : 100
 				}
 			],
+			//图例
 			legend : { //图表上方的类别显示           	
 				show : true,
 				data : [ '赞同数', ]
@@ -84,9 +85,9 @@
 				type : 'category',
 				data : [] //先设置数据值为空，后面用Ajax获取动态数据填入
 			},
-			yAxis : [ //Y轴（这里我设置了两个Y轴，左右各一个）
+			yAxis : [ 
 				{
-					//第一个（左边）Y轴，yAxisIndex为0
+
 					type : 'value',
 					name : '赞同数',
 					/* max: 120,
