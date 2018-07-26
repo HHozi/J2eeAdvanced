@@ -1243,6 +1243,42 @@ public class UserController {
 ![SQLyoy创建索引](https://user-gold-cdn.xitu.io/2018/7/24/164cc256d65b6266?w=1115&h=456&f=png&s=56412)
 
 
+### 简单改进使直方图以及立方图可以显示最大值、最小值以及平局值：
+效果图如下
+![](http://my-blog-to-use.oss-cn-beijing.aliyuncs.com/18-7-26/40933861.jpg)
+改进方法（修改series代码如下）：
+
+```js
+			//series[i]:系列列表。每个系列通过 type 决定自己的图表类型
+			series : [ //系列（内容）列表                      
+				{
+					name : '赞同数',
+					type : 'line', //折线图表示（生成温度曲线）
+					symbol : 'emptycircle', //设置折线图中表示每个坐标点的符号；emptycircle：空心圆；emptyrect：空心矩形；circle：实心圆；emptydiamond：菱形	                    
+					data : [], //数据值通过Ajax动态获取
+					//图标上显示出最大值和最小值
+					markPoint : {
+						data : [ {
+							type : 'max',
+							name : '最大值'
+						}, {
+							type : 'min',
+							name : '最小值'
+						} ],
+					},
+					//图标上显示平局值
+					markLine : {
+						data : [ {
+							type : 'average',
+							name : '平均值'
+						} ]
+					}
+				},
+			]
+```
+
+
+
 > 如果想要获取更多我的原创文章，欢迎关注我的微信公众号:"**Java面试通关手册**" 。无套路，希望能与您共同进步，互相学习。
 
 ![](https://user-gold-cdn.xitu.io/2018/7/5/1646a3d308a8db1c?w=258&h=258&f=jpeg&s=27034)
