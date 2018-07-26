@@ -1280,6 +1280,7 @@ series : [ //系列（内容）列表
 ### 修改圆饼图legend图例：
 效果如下：
 ![](http://my-blog-to-use.oss-cn-beijing.aliyuncs.com/18-7-26/43938136.jpg)
+
 改进方法：
 将异步请求的代码改成如下所示。
 ```js
