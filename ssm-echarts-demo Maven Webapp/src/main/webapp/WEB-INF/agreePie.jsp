@@ -25,9 +25,8 @@
 	src="${pageContext.request.contextPath}/js/echarts.js"></script>
 <body>
 	<!-- 显示Echarts图表 -->
-	<div id="main" style="width: 500px;height: 300px;">
-	</div>
-	
+	<div id="main" style="width: 500px;height: 300px;"></div>
+
 	<div id="main2" style="width: 500px;height: 300px;"></div>
 	<script>	//初始化echarts var pieCharts =
 		//初始化echarts
@@ -38,7 +37,8 @@
 			title : {
 				text : '赞同数',
 				subtext : '赞同数比',
-				x : 'center' //title显示的位置
+				left : "center", //left 的值可以是像 20 这样的具体像素值，可以是像 '20%' 这样相对于容器高宽的百分比，也可以是 'left', 'center', 'right',如果 left 的值为'left', 'center', 'right'，组件会根据相应的位置自动对齐。
+				right : "auto", //right 的值可以是像 20 这样的具体像素值，可以是像 '20%' 这样相对于容器高宽的百分比。
 			},
 			tooltip : {
 				trigger : 'item',
@@ -77,8 +77,8 @@
 				{
 					name : '赞同数',
 					type : 'pie',
-					radius : '55%',
-					center : [ '50%', '60%' ],
+					radius : '50%', //半径
+					center : [ '50%', '50%' ], //圆心位置
 					data : []
 				}
 			]
@@ -88,6 +88,7 @@
 		//显示一段动画
 		pieCharts.showLoading();
 	
+		var names = [];
 		//异步请求数据
 		$.ajax({
 			type : "post",
@@ -96,14 +97,21 @@
 			data : [],
 			dataType : "json",
 			success : function(result) {
+	
 				if (result) {
+					for (var i = 0; i < result.length; i++) {
+						names.push(result[i].name); //挨个取出类别并填入类别数组
+					}
 					pieCharts.hideLoading(); //隐藏加载动画
 					pieCharts.setOption({
 						series : [
 							{
 								data : result
 							}
-						]
+						],
+						legend : {
+							data : names
+						}
 					});
 				} else {
 					//返回的数据为空时显示提示信息

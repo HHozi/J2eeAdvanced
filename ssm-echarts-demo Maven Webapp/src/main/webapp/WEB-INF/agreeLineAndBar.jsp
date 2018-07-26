@@ -39,9 +39,12 @@
 			title : { //图表标题
 				text : '知乎前10赞同数', //主标题
 				subtext : 'SSM实现知乎前10赞同数统计', //副标题
+				left : "center", //left 的值可以是像 20 这样的具体像素值，可以是像 '20%' 这样相对于容器高宽的百分比，也可以是 'left', 'center', 'right',如果 left 的值为'left', 'center', 'right'，组件会根据相应的位置自动对齐。
+				//top : "center", //left 的值可以是像 20 这样的具体像素值，可以是像 '20%' 这样相对于容器高宽的百分比，也可以是 'left', 'center', 'right',如果 left 的值为'left', 'center', 'right'，组件会根据相应的位置自动对齐。
+				right : "auto", //right 的值可以是像 20 这样的具体像素值，可以是像 '20%' 这样相对于容器高宽的百分比。
+			//bottom : "auto" //bottom 的值可以是像 20 这样的具体像素值，可以是像 '20%' 这样相对于容器高宽的百分比。				
 			//borderColor : 'red', //边框颜色
 			//borderWidth : 10, //边框宽度
-			// Left
 			},
 			tooltip : {
 				trigger : 'axis', //坐标轴触发提示框，多用于柱状、折线图中
@@ -118,7 +121,7 @@
 					type : 'line', //折线图表示（生成温度曲线）
 					symbol : 'emptycircle', //设置折线图中表示每个坐标点的符号；emptycircle：空心圆；emptyrect：空心矩形；circle：实心圆；emptydiamond：菱形	                    
 					data : [], //数据值通过Ajax动态获取
-					//图标上显示出最大值和最小值
+					//图标上显示出最大值和最小值，symbol属性可以改变标记图形
 					markPoint : {
 						data : [ {
 							type : 'max',
