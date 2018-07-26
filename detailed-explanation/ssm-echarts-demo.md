@@ -1249,32 +1249,71 @@ public class UserController {
 改进方法（修改series代码如下）：
 
 ```js
-			//series[i]:系列列表。每个系列通过 type 决定自己的图表类型
-			series : [ //系列（内容）列表                      
-				{
-					name : '赞同数',
-					type : 'line', //折线图表示（生成温度曲线）
-					symbol : 'emptycircle', //设置折线图中表示每个坐标点的符号；emptycircle：空心圆；emptyrect：空心矩形；circle：实心圆；emptydiamond：菱形	                    
-					data : [], //数据值通过Ajax动态获取
-					//图标上显示出最大值和最小值
-					markPoint : {
-						data : [ {
-							type : 'max',
-							name : '最大值'
-						}, {
-							type : 'min',
-							name : '最小值'
-						} ],
-					},
-					//图标上显示平局值
-					markLine : {
-						data : [ {
-							type : 'average',
-							name : '平均值'
-						} ]
+//series[i]:系列列表。每个系列通过 type 决定自己的图表类型
+series : [ //系列（内容）列表                      
+	{
+		name : '赞同数',
+		type : 'line', //折线图表示（生成温度曲线）
+		symbol : 'emptycircle', //设置折线图中表示每个坐标点的符号；emptycircle：空心圆；emptyrect：空心矩形；circle：实心圆；emptydiamond：菱形	                    
+		data : [], //数据值通过Ajax动态获取
+		//图标上显示出最大值和最小值
+		markPoint : {
+			data : [ {
+				type : 'max',
+				name : '最大值'
+			}, {
+				type : 'min',
+				name : '最小值'
+			} ],
+		},
+		//图标上显示平局值
+		markLine : {
+			data : [ {
+				type : 'average',
+				name : '平均值'
+			} ]
+		}
+	},
+]
+```
+
+### 修改圆饼图legend图例：
+效果如下：
+![](http://my-blog-to-use.oss-cn-beijing.aliyuncs.com/18-7-26/43938136.jpg)
+改进方法：
+将异步请求的代码改成如下所示。
+```js
+var names = [];
+//异步请求数据
+$.ajax({
+	type : "post",
+	async : true,
+	url : '${pageContext.request.contextPath}/echarts/agreePie',
+	data : [],
+	dataType : "json",
+	success : function(result) {
+
+		if (result) {
+			for (var i = 0; i < result.length; i++) {
+				names.push(result[i].name); //挨个取出类别并填入类别数组
+			}
+			pieCharts.hideLoading(); //隐藏加载动画
+			pieCharts.setOption({
+				series : [
+					{
+						data : result
 					}
-				},
-			]
+				],
+				legend : {
+					data : names
+				}
+			});
+		} else {
+			//返回的数据为空时显示提示信息
+			alert("图表请求数据为空，可能服务器暂未录入近五天的观测数据，您可以稍后再试！");
+			pieCharts.hideLoading();
+		}
+	},
 ```
 
 
