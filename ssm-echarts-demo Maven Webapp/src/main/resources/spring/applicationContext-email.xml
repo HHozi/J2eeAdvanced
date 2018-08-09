@@ -30,4 +30,26 @@
 			</props>
 		</property>
 	</bean>
+	<!-- freemarker -->
+	<bean id="configuration"
+		class="org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean">
+		<property name="templateLoaderPath" value="/WEB-INF/freemarker/" />
+		<!-- 设置FreeMarker环境变量 -->
+		<property name="freemarkerSettings">
+			<props>
+				<prop key="default_encoding">UTF-8</prop>
+			</props>
+		</property>
+	</bean>
+
+
+	<!-- velocity -->
+	<bean id="velocityEngine"
+		class="org.springframework.ui.velocity.VelocityEngineFactoryBean">
+		<property name="resourceLoaderPath" value="/WEB-INF/velocity/" /><!-- 
+			模板存放的路径 -->
+		<property name="configLocation" value="classpath:velocity.properties" /><!-- 
+			Velocity的配置文件 -->
+	</bean>
+
 </beans>

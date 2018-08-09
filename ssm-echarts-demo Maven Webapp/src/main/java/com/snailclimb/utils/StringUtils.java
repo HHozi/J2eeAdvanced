@@ -1,4 +1,4 @@
-package utils;
+package com.snailclimb.utils;
 
 public class StringUtils {
 

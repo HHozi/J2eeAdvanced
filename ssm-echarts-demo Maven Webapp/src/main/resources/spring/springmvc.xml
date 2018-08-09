@@ -24,6 +24,7 @@
 		<property name="prefix" value="/WEB-INF/" />
 		<property name="suffix" value=".jsp" />
 	</bean>
+
 	<!-- 开启shiro注解功能 -->
 	<!-- <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator" 
 		depends-on="lifecycleBeanPostProcessor"> <property name="proxyTargetClass" 
