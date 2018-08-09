@@ -1,142 +1,331 @@
+![知乎赞同数Top10](https://user-gold-cdn.xitu.io/2018/7/24/164cb3b1675fb2c6)
 ## 一 前言
 
+### 1.1  60w知乎网名的数据从何而来？
+去年在接触Java爬虫的时候，接触到了一个关于知乎的爬虫。个人觉得写的非常好，当时抓取的效率和成功率还是特别特别高，现在可能知乎反扒做的更好，这个开源知乎爬虫没之前抓取的那么顺利了。我记得当时在我的i7+8g的机器上爬了将近两天，大概爬取了**60多w**的数据。当然，实际抓取的用户数据数量肯定比这个多，只是持久化过程不同步而已，也就是抓取的好几个用户可能只有一个存入数据库中。
+
+最后，本文提供的知乎网名数据是2017年12月份左右抓取的数据。
+
+**60w知乎网名数据：**
+
+链接：[https://pan.baidu.com/s/1pEcHAbRyKP7KGcgTuZfPVA](https://pan.baidu.com/s/1pEcHAbRyKP7KGcgTuZfPVA) 密码：l3so
+
+**项目源码地址(如果觉得 有帮助的话，欢迎给个Star.)：** 
+
+[https://github.com/Snailclimb/J2ee-Advanced](https://github.com/Snailclimb/J2ee-Advanced) （Java Web进阶学习的一些源码加详细讲解）
+
+### 1.2 通过本篇文章你能学到什么？
+
+1. SSM环境的搭建；
+2. 如何在SSM项目中使用Echarts
 
 
-### 测试所使用的环境
+### 1.3 效果图展示
+细心的同学会发现，我其实只从数据库抓取了9条数据出来。因为我的SQL语句写错了（逃....），大家可以自己修改Mapper文件。
 
-测试使用的环境是企业主流的SSM 框架即 SpringMVC+Spring+Mybatis。为了节省时间，我直接使用的是我上次的“[SSM项目中整合Echarts开发](https://github.com/Snailclimb/J2ee-Advanced/blob/master/detailed-explanation/ssm-echarts-demo.md)”该项目已经搭建完成的SSM环境。
+![效果图](https://user-gold-cdn.xitu.io/2018/7/24/164c9eae98b91b29?w=1370&h=649&f=gif&s=809749)
 
+## 二 SSM环境搭建
+声明一下，笔主使用的是MyEclipse2016(主要是为了暑假做的项目的编码环境的统一，所以我选择了MyEclipse2016)。
 
-### 标题说的四种姿势指的是哪四种姿势？
+### 2.1 项目结构
 
-1.  发送text格式的邮件
-2.  发送HTML格式的邮件
-3.  基于FreeMarker模板引擎发送邮件
-3.  基于Velocity模板引擎发送邮件
+![项目结构](https://user-gold-cdn.xitu.io/2018/7/24/164c9fd64fbc9389?w=266&h=480&f=png&s=22080)
 
-### 如何获取以及运行我的Demo
+### 2.2  配置文件
 
-Github地址：[https://github.com/Snailclimb/J2ee-Advanced](https://github.com/Snailclimb/J2ee-Advanced)。
+#### 2.3.1 pom.xml
+需要的jar包，都在这里配置好。另外我配置了一个Tomcat插件，这样就可以通过Maven Build的方式来运行项目了。具体运行方式如下：
 
-你可以选择直接下载或者直接在DOS窗口运行：`git clone https://github.com/Snailclimb/J2ee-Advanced.git`命令，这样项目就被拷贝到你的电脑了。
-![](https://user-gold-cdn.xitu.io/2018/8/9/1651e898e11c24f7?w=1124&h=370&f=png&s=43744)
+**右键项目->run as -> Maven build**
+![Maven build的方式运行项目](https://user-gold-cdn.xitu.io/2018/7/24/164ca5f92458cd54?w=888&h=384&f=png&s=46946)
 
-然后选择导入Maven项目即可（不懂Maven的可以自行百度学习）.
+**然后输入tomcat7:run后点击run即可**
+![运行](https://user-gold-cdn.xitu.io/2018/7/24/164ca60dff46deeb?w=800&h=640&f=png&s=41248)
 
-## 二  准备工作
+**这里提一点：@ResponseBody注解要把对象转换成json格式，所以需要添加相关转换依赖的jar包（jackson）**
 
-既然要发送邮件，那么你首先要提供一个能在第三方软件上发送邮件功能的账号。在这里，我选择的网易邮箱账号。
-
-我拿网易邮箱账号举例子，那么我们如何才能让你的邮箱账号可以利用第三方发送邮件（这里的第三方就是我们即将编写的程序）。
-
-大家应该清楚:客户端和后台交互数据的时候用到了Http协议，那么相应的，邮箱传输也有自己的一套协议，如SMTP，POP3，IMAP。
-
-### 开启POP3/SMTP/IMAP服务
-
-所以，我们第一步首先要去开启这些服务，如下图所示：
-
-![开启服务 ](https://user-gold-cdn.xitu.io/2018/8/9/1651e2ea0d9622da?w=1236&h=585&f=png&s=193708)
-
-如果你未开启该服务的话，运行程序会报如下错误（配置文件中配置的密码是你的授权码而不是你登录邮箱的密码，授权码是你第三方登录的凭证）：
-```
-HTTP Status 500 - Request processing failed; nested exception is org.springframework.mail.MailAuthenticationException: Authentication failed; nested exception is javax.mail.AuthenticationFailedException: 550 User has no permission
-```
-
-### JavaMail介绍
-
-我们需要用到的发邮件的核心jar包，所以这里好好介绍一下。
-
-JavaMail是由Sun定义的一套收发电子邮件的API，不同的厂商可以提供自己的实现类。但它并没有包含在JDK中，而是作为JavaEE的一部分。厂商所提供的JavaMail服务程序可以有选择地实现某些邮件协议，常见的邮件协议包括：
--  SMTP：简单邮件传输协议，用于发送电子邮件的传输协议；
-- POP3：用于接收电子邮件的标准协议；
-- IMAP：互联网消息协议，是POP3的替代协议。
-
-这三种协议都有对应SSL加密传输的协议，分别是SMTPS，POP3S和IMAPS。
-
-我们如果要使用JavaMail的话，需要自己引用相应的jar包，如下图所示：
-```xml
-		<dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>mail</artifactId>
-			<version>1.4.7</version>
-		</dependency>
-```
-
-### 相关配置文件
-
-下图是除了pom.xml之外用到的其他所有配置文件
-![配置文件](https://user-gold-cdn.xitu.io/2018/8/9/1651e4988d6b2673?w=290&h=260&f=png&s=11408)
-
-#### pom.xml
-需要用到的jar包。
+**pom.xml**
 
 ```xml
-        <!--spring支持-->
-        <dependency>
-              <groupId>org.springframework</groupId>
-              <artifactId>spring-context-support</artifactId>
-              <version>5.0.0.RELEASE</version>
-        </dependency>
-		<!-- 发送邮件 -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>spring</groupId>
+	<artifactId>ssm-echarts-demo</artifactId>
+	<packaging>war</packaging>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>ssm-echarts-demo Maven Webapp</name>
+	<url>http://maven.apache.org</url>
+	<properties>
+		<webVersion>3.0</webVersion>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- spring版本号 -->
+		<spring.version>4.0.0.RELEASE</spring.version>
+		<!-- log4j日志文件管理包版本 -->
+		<!-- <slf4j.version>1.6.6</slf4j.version> <log4j.version>1.2.12</log4j.version> -->
+		<!-- mybatis版本号 -->
+		<mybatis.version>3.1.1</mybatis.version>
+		<!-- aspectJ版本号 -->
+		<aspectJ.version>1.7.4</aspectJ.version>
+		<!-- 数据库连接池版本号 -->
+		<commons-dbcp.version>1.4</commons-dbcp.version>
+		<commons-pool.version>1.6</commons-pool.version>
+		<!-- jackson的版本号 json和xml解析 -->
+		<jackson.version>2.8.9</jackson.version>
+		<!-- mybatis/spring包的版本号 -->
+		<mybatis-spring.version>1.1.1</mybatis-spring.version>
+		<!-- mysql的版本号 -->
+		<mysql.version>5.1.29</mysql.version>
+		<!-- jstl的版本号 -->
+		<jstl.version>1.2.1</jstl.version>
+		<!-- 文件上传用的包 的版本号 -->
+		<commons-fileupload.version>1.3.1</commons-fileupload.version>
+		<commons-io.version>2.4</commons-io.version>
+		<!-- 数据校验使用的包的版本号 -->
+		<validation-api.version>2.0.0.Final</validation-api.version>
+		<hibernate-validator.version>5.4.1.Final</hibernate-validator.version>
+	</properties>
+	<dependencies>
+		<!-- 单元测试 -->
 		<dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>mail</artifactId>
-			<version>1.4.7</version>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
 		</dependency>
-		<!-- Freemarker -->
+		<!-- -->
 		<dependency>
-			<groupId>org.freemarker</groupId>
-			<artifactId>freemarker</artifactId>
-			<version>2.3.23</version>
-		</dependency>
-		<!-- velocity模板引擎 -->
-		<dependency>
-			<groupId>org.apache.velocity</groupId>
-			<artifactId>velocity</artifactId>
-			<version>1.7</version>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>4.0.0.RELEASE</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.velocity</groupId>
-			<artifactId>velocity-tools</artifactId>
-			<version>2.0</version>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.1.3</version>
 		</dependency>
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+			<version>3.2.1</version>
+		</dependency>
+		<!-- jstl -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jstl</artifactId>
+			<version>1.2</version>
+		</dependency>
+
+		<!-- mybatis -->
+		<dependency>
+			<groupId>org.mybatis</groupId>
+			<artifactId>mybatis</artifactId>
+			<version>${mybatis.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mybatis</groupId>
+			<artifactId>mybatis-spring</artifactId>
+			<version>${mybatis-spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>${mysql.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>druid</artifactId>
+			<version>0.2.23</version>
+		</dependency>
+		<!-- spring -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.aspectj</groupId>
+			<artifactId>aspectjrt</artifactId>
+			<version>${aspectJ.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.aspectj</groupId>
+			<artifactId>aspectjweaver</artifactId>
+			<version>${aspectJ.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aop</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jdbc</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-webmvc</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context-support</artifactId>
+			<version>${spring.version}</version>
+		</dependency>
+		<!-- Jackson -->
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.8.5</version>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.jackson</groupId>
+			<artifactId>jackson-mapper-asl</artifactId>
+			<version>1.9.13</version>
+		</dependency>
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>1.2.3</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
+		<!-- 解决.jsp出错 -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.1.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- 连接池 -->
+		<dependency>
+			<groupId>commons-dbcp</groupId>
+			<artifactId>commons-dbcp</artifactId>
+			<version>${commons-dbcp.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-pool</groupId>
+			<artifactId>commons-pool</artifactId>
+			<version>${commons-pool.version}</version>
+		</dependency>
+		<!-- 文件上传用的包 -->
+		<dependency>
+			<groupId>commons-fileupload</groupId>
+			<artifactId>commons-fileupload</artifactId>
+			<version>${commons-fileupload.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>${commons-io.version}</version>
+		</dependency>
+		<!-- 数据校验 -->
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
+			<version>${validation-api.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>${hibernate-validator.version}</version>
+		</dependency>
+
+	</dependencies>
+	<build>
+		<finalName>ssm-echarts-demo</finalName>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat7-maven-plugin</artifactId>
+				<configuration>
+					<path>/</path>
+					<port>8082</port>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<failOnMissingWebXml>false</failOnMissingWebXml>
+				</configuration>
+			</plugin>
+		</plugins>
+		<!--资源文件打包 -->
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<includes>
+					<include>**/*.properties</include>
+					<include>**/*.xml</include>
+					<include>**/*.tld</include>
+				</includes>
+				<filtering>false</filtering>
+			</resource>
+			<resource>
+				<directory>src/main/java</directory>
+				<includes>
+					<include>**/*.properties</include>
+					<include>**/*.xml</include>
+					<include>**/*.tld</include>
+				</includes>
+				<filtering>false</filtering>
+			</resource>
+		</resources>
+	</build>
+</project>
+
 ```
 
-#### mail.properties
-```
-#服务器主机名
-mail.smtp.host=smtp.163.com
-#你的邮箱地址
-mail.smtp.username=koushuangbwcx@163.com
-#你的授权码
-mail.smtp.password=cSdN153963000
-#编码格式
-mail.smtp.defaultEncoding=utf-8
-#是否进行用户名密码校验
-mail.smtp.auth=true
-#设置超时时间
-mail.smtp.timeout=20000
-```
+#### 2.3.2 Spring相关配置文件：
 
-如果你的授权码填写错误的话，会报如下错误：
+由于Spring配置较多所以我这里分了4层，分别是dao、service、transaction、web。
 
-```
-TTP Status 500 - Request processing failed; nested exception is org.springframework.mail.MailAuthenticationException: Authentication failed; nested exception is javax.mail.AuthenticationFailedException: 535 Error: authentication failed
-```
-
-
-
-#### velocity.properties
-
-```
-input.encoding=UTF-8  
-output.encoding=UTF-8  
-contentType=ext/html;charset=UTF-8
-directive.foreach.counter.name=loopCounter  
-directive.foreach.counter.initial.value=0
-```
-
-#### applicationContext-email.xml
+**applicationContext-dao.xml**
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -153,400 +342,980 @@ directive.foreach.counter.initial.value=0
         http://www.springframework.org/schema/tx/spring-tx-4.2.xsd
         http://www.springframework.org/schema/aop    
         http://www.springframework.org/schema/aop/spring-aop-4.0.xsd">
-
-	<!--邮件配置 -->
-	<context:property-placeholder location="classpath:mail.properties"
-		ignore-unresolvable="true" />
-
-	<!--配置邮件接口 -->
-	<bean id="javaMailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
-		<property name="host" value="${mail.smtp.host}" />
-		<property name="username" value="${mail.smtp.username}" />
-		<property name="password" value="${mail.smtp.password}" />
-		<property name="defaultEncoding" value="${mail.smtp.defaultEncoding}" />
-		<property name="javaMailProperties">
-			<props>
-				<prop key="mail.smtp.auth">${mail.smtp.auth}</prop>
-				<prop key="mail.smtp.timeout">${mail.smtp.timeout}</prop>
-			</props>
-		</property>
+	<!-- 加载数据库属性文件，为配置数据源做准备 -->
+	<context:property-placeholder location="classpath:db.properties" />
+	<!-- bean采用注解式注入 -->
+	<context:annotation-config></context:annotation-config>
+	<!-- 配置数据源 使用dbcp -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="${jdbc.driverClassName}" />
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<property name="maxActive" value="10" />
+		<property name="maxIdle" value="5" />
 	</bean>
-	<!-- freemarker -->
-	<bean id="configuration"
-		class="org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean">
-		<property name="templateLoaderPath" value="/WEB-INF/freemarker/" />
-		<!-- 设置FreeMarker环境变量 -->
-		<property name="freemarkerSettings">
-			<props>
-				<prop key="default_encoding">UTF-8</prop>
-			</props>
-		</property>
+	<!-- =================================MyBatis的整合====================================== -->
+	<!-- 配置mybatis的SqlSessionFactoryBean -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 指定mybatis 全局配置文件的位置 -->
+		<property name="configLocation" value="classpath:mybatis/spring-mybatis.xml"></property>
+		<property name="dataSource" ref="dataSource"></property>
 	</bean>
 
+	<!-- mapper配置: mapper批量处理，从mapper包中扫描mapper接口，自动创建代理对象并且在spring容器中注册 遵循规范：将mapper.java和mapper.xml映射文件名称保持一致，且在一个目录中自动扫描 
+		出来的mapper的bean的id为mapper类名（首字母小写） -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.snailclimb.dao"></property>
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+	</bean>
 
-	<!-- velocity -->
-	<bean id="velocityEngine"
-		class="org.springframework.ui.velocity.VelocityEngineFactoryBean">
-		<property name="resourceLoaderPath" value="/WEB-INF/velocity/" /><!-- 
-			模板存放的路径 -->
-		<property name="configLocation" value="classpath:velocity.properties" /><!-- 
-			Velocity的配置文件 -->
+
+</beans>
+```
+
+**applicationContext-service.xml**
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-4.0.xsd
+        http://www.springframework.org/schema/tx 
+        http://www.springframework.org/schema/tx/spring-tx-4.2.xsd
+        http://www.springframework.org/schema/aop    
+        http://www.springframework.org/schema/aop/spring-aop-4.0.xsd">
+	<!-- 用户管理service -->
+	<context:component-scan base-package="com.snailclimb.service.impl"></context:component-scan>
+</beans>
+```
+
+**applicationContext-trans.xml:**
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd">
+
+	<!--事务管理器 -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<!--通知 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+
+		<tx:attributes>
+			<tx:method name="save*" propagation="REQUIRED" />
+			<tx:method name="insert*" propagation="REQUIRED" />
+			<tx:method name="add*" propagation="REQUIRED" />
+			<tx:method name="create*" propagation="REQUIRED" />
+			<tx:method name="delete*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="find*" propagation="SUPPORTS" read-only="true" />
+			<tx:method name="select*" propagation="SUPPORTS" read-only="true" />
+			<tx:method name="get*" propagation="SUPPORTS" read-only="true" />
+		</tx:attributes>
+	</tx:advice>
+	<aop:config>
+		<aop:advisor advice-ref="txAdvice"
+			pointcut="execution(* com.snailclimb.service.*.*(..))" />
+	</aop:config>
+
+</beans>
+```
+
+**springmvc.xml**
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc
+		http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+        http://www.springframework.org/schema/context 
+        http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-4.0.xsd">
+	<!-- 配置扫描器：@Controller是@Component的一个子类。@service -->
+	<context:component-scan base-package="com.snailclimb.controller"></context:component-scan>
+
+	<!-- 配置注解器： -->
+	<mvc:annotation-driven></mvc:annotation-driven>
+
+
+
+	<!-- 配置springMVC的视图解析器 -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass"
+			value="org.springframework.web.servlet.view.JstlView" />
+		<property name="prefix" value="/WEB-INF/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+	<!-- 开启shiro注解功能 -->
+	<!-- <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator" 
+		depends-on="lifecycleBeanPostProcessor"> <property name="proxyTargetClass" 
+		value="true" /> </bean> <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor"> 
+		<property name="securityManager" ref="securityManager" /> </bean> -->
+	<!-- 全局异常配置 -->
+	<!-- <bean class="com.chen.PLoveLibrary.exception.HandleException"></bean> -->
+	<!-- 文件上传 -->
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<!-- 上传文件大小上限，单位为字节（10MB） -->
+		<property name="maxUploadSize">
+			<value>10485760</value>
+		</property>
+		<!-- 请求的编码格式，必须和jSP的pageEncoding属性一致，以便正确读取表单的内容，默认为ISO-8859-1 -->
+		<property name="defaultEncoding">
+			<value>UTF-8</value>
+		</property>
+	</bean>
+	<!-- 配置校验器 ，使用的是hibernate框架的validate，但与hibernate无关 -->
+	<bean id="validator"
+		class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">
+		<!-- 校验器，使用hibernate校验器 -->
+		<property name="providerClass" value="org.hibernate.validator.HibernateValidator" />
+		<!-- 指定校验使用的资源文件，在文件中配置校验错误信息，如果不指定则默认使用classpath下面的ValidationMessages.properties文件 -->
+		<property name="validationMessageSource" ref="messageSource" />
+	</bean>
+	<!-- 校验错误信息配置文件 -->
+	<bean id="messageSource"
+		class="org.springframework.context.support.ReloadableResourceBundleMessageSource">
+		<!-- 资源文件名 -->
+		<property name="basenames">
+			<list>
+				<value>classpath:validateMessage</value>
+			</list>
+		</property>
+		<!-- 资源文件编码格式 -->
+		<property name="fileEncodings" value="utf-8" />
+		<!-- 对资源文件内容缓存时间，单位秒 -->
+		<property name="cacheSeconds" value="120" />
 	</bean>
 
 </beans>
 ```
-## 三 开始编写工具类
+#### 2.3.3 数据库连接以及log4j配置文件：
 
-我这里说是工具类，其实只是我自己做了简单的封装，实际项目使用的话，可能会需要根据需要简单修改一下。
+Log4J的配置文件(Configuration File)就是用来设置记录器的级别、存放器和布局的，它可接key=value格式的设置或xml格式的设置信息。通过配置，可以创建出Log4J的运行环境。
 
-所有用到的类如下图所示：
-![所有用到的类](https://user-gold-cdn.xitu.io/2018/8/9/1651e4ba0d85b251?w=403&h=377&f=png&s=33602)
+**log4j.properties**
 
-### 发送Text或者HTML格式的邮件的方法
+```
+log4j.rootLogger=DEBUG, stdout
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern=%d [%-5p] %c - %m%n
+```
+
+**db.properties**
+
+```
+jdbc.driverClassName=com.mysql.jdbc.Driver
+jdbc.url=jdbc:mysql://localhost:3306/spider_zhihu_crawler
+jdbc.username=root
+jdbc.password=xxxxxx
+```
+#### 2.3.4 Mybatis配置文件：
+**spring-mybatis.xml**
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>    
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"    
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<!-- 开启mybatis的缓存机制,开启二级缓存 -->
+	<settings>
+		<setting name="cacheEnabled" value="true" />
+	</settings>
+
+	<!-- mybatis中的别名命名 -->
+	<typeAliases>
+		<package name="com.snailclimb.bean" />
+
+	</typeAliases>
+
+</configuration>
+```
+#### 2.3.5 web.xml：
+![web.xml配置文件](https://user-gold-cdn.xitu.io/2018/7/24/164ca7060eec99a3?w=289&h=290&f=png&s=11519)
+
+**web.xml**
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+	id="WebApp_ID" version="3.0">
+	<display-name>ssm-echarts-demo</display-name>
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+		<welcome-file>index.htm</welcome-file>
+		<welcome-file>index.jsp</welcome-file>
+		<welcome-file>default.html</welcome-file>
+		<welcome-file>default.htm</welcome-file>
+		<welcome-file>default.jsp</welcome-file>
+	</welcome-file-list>
+
+	<!-- springMVC 静态资源显示问题。使用服务器来处理静态资源。 原因：客户端发送request，springMVC有DispatcherServlet转发，而DiapatchServlet的url-pattern是“/”，代表着所有的请求都要由DispatcherServlet 
+		转发，因此处理静态资源，第一种就采用服务器端处理，请求先过DefaultServlet,静态资源过滤则剩下的请求就交给dispatcherServlet处理。 -->
+	<servlet>
+		<servlet-name>default</servlet-name>
+		<servlet-class>org.apache.catalina.servlets.DefaultServlet</servlet-class>
+		<init-param>
+			<param-name>debug</param-name>
+			<param-value>0</param-value>
+		</init-param>
+		<init-param>
+			<param-name>listings</param-name>
+			<param-value>false</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+
+	<!-- 加载spring容器 ，如果没有配置这个话会出现service无法注入到controller层的情况 -->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:spring/applicationContext-*.xml</param-value>
+	</context-param>
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	<!-- js静态资源 -->
+	<servlet-mapping>
+
+		<servlet-name>default</servlet-name>
+
+		<url-pattern>*.js</url-pattern>
+
+	</servlet-mapping>
+	<!-- css静态资源 -->
+	<servlet-mapping>
+
+		<servlet-name>default</servlet-name>
+
+		<url-pattern>*.css</url-pattern>
+
+	</servlet-mapping>
+	<!-- gif 静态资源 -->
+	<servlet-mapping>
+
+		<servlet-name>default</servlet-name>
+
+		<url-pattern>*.gif</url-pattern>
+
+	</servlet-mapping>
+	<!-- jpg静态资源 -->
+	<servlet-mapping>
+
+		<servlet-name>default</servlet-name>
+
+		<url-pattern>*.jpg</url-pattern>
+
+	</servlet-mapping>
+	<!-- ico -->
+	<servlet-mapping>
+
+		<servlet-name>default</servlet-name>
+
+		<url-pattern>*.ico</url-pattern>
+
+	</servlet-mapping>
+	<!-- png -->
+	<servlet-mapping>
+
+		<servlet-name>default</servlet-name>
+
+		<url-pattern>*.png</url-pattern>
+
+	</servlet-mapping>
+	<!-- htm -->
+	<servlet-mapping>
+
+		<servlet-name>default</servlet-name>
+
+		<url-pattern>*.htm</url-pattern>
+
+	</servlet-mapping>
+
+	<!-- eot -->
+	<servlet-mapping>
+
+		<servlet-name>default</servlet-name>
+
+		<url-pattern>*.eot</url-pattern>
+
+	</servlet-mapping>
+	<!-- svg -->
+	<servlet-mapping>
+
+		<servlet-name>default</servlet-name>
+
+		<url-pattern>*.svg</url-pattern>
+
+	</servlet-mapping>
+	<!-- ttf -->
+	<servlet-mapping>
+
+		<servlet-name>default</servlet-name>
+
+		<url-pattern>*.ttf</url-pattern>
+
+	</servlet-mapping>
+	<!-- woff -->
+	<servlet-mapping>
+		<servlet-name>default</servlet-name>
+		<url-pattern>*.woff</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>default</servlet-name>
+		<url-pattern>*.json</url-pattern>
+	</servlet-mapping>
+
+
+
+	<!-- 配置springMVC的DispathServlet -->
+	<servlet>
+		<servlet-name>spring</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>classpath:spring/springmvc.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>spring</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+	<!-- 配置过滤器:CharacterEncodingFilter -->
+	<filter>
+		<filter-name>Encoding</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>Encoding</filter-name>
+		<url-pattern>*</url-pattern>
+	</filter-mapping>
+
+</web-app>
+```
+
+### 三 核心代码
+
+#### 3.1 bean
+**User.java**
 
 ```java
-	/**
-	 * 
-	 * Text或者HTML格式邮件的方法
-	 * 
-	 * @param text
-	 *            要发送的内容
-	 * @param subject
-	 *            邮件的主题也就是邮件的标题
-	 * @param location
-	 *            文件的地址
-	 * @param emailAdress
-	 *            目的地
-	 * @param javaMailSender
-	 *            发送邮件的核心类（在xml文件中已经配置好了）
-	 * @param type
-	 *            如果为true则代表发送HTML格式的文本
-	 * @return
-	 * @throws TemplateException
-	 */
-	public String sendMail(String text, String subject, String location, String emailAdress,
-			JavaMailSender javaMailSender, Boolean type) {
-		MimeMessage mMessage = javaMailSender.createMimeMessage();// 创建邮件对象
-		MimeMessageHelper mMessageHelper;
-		Properties prop = new Properties();
-		try {
-			// 从配置文件中拿到发件人邮箱地址
-			prop.load(this.getClass().getResourceAsStream("/mail.properties"));
-			String from = prop.get("mail.smtp.username") + "";
-			mMessageHelper = new MimeMessageHelper(mMessage, true, "UTF-8");
-			// 发件人邮箱
-			mMessageHelper.setFrom(from);
-			// 收件人邮箱
-			mMessageHelper.setTo(emailAdress);
-			// 邮件的主题也就是邮件的标题
-			mMessageHelper.setSubject(subject);
-			// 邮件的文本内容，true表示文本以html格式打开
-			if (type) {
-				mMessageHelper.setText(text, true);
-			} else {
-				mMessageHelper.setText(text, false);
-			}
-
-			// 通过文件路径获取文件名字
-			String filename = StringUtils.getFileName(location);
-			// 定义要发送的资源位置
-			File file = new File(location);
-			FileSystemResource resource = new FileSystemResource(file);
-			FileSystemResource resource2 = new FileSystemResource("D:/email.txt");
-			mMessageHelper.addAttachment(filename, resource);// 在邮件中添加一个附件
-			mMessageHelper.addAttachment("JavaApiRename.txt", resource2);//
-			// 在邮件中添加一个附件
-			javaMailSender.send(mMessage);// 发送邮件
-		} catch (MessagingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return "发送成功";
-	}
-```
-我在`sendMail()`方法中添加了一个`boolean`类型的变量type作为标志，如果为ture就表示发送html格式的邮件否则直接发送text格式的邮件。实现起来很简单，我们通过下面的判断语句就可以实现了
-
-```java
-			if (type) {
-		        //表示文本以html格式打开
-				mMessageHelper.setText(text, true);
-			} else {
-				mMessageHelper.setText(text, false);
-			}
-```
-
-效果:
-
-![](https://user-gold-cdn.xitu.io/2018/8/9/1651e57fe6aebc04?w=1156&h=536&f=png&s=38412)
-
-### 基于FreeMarker模板引擎发送邮件
-下图是我们用到的FreeMarker模板文件以及Velocity模板文件的位置。
-
-![](https://user-gold-cdn.xitu.io/2018/8/9/1651e5224c0305a1?w=288&h=291&f=png&s=11011)
-
-```java
-	/**
-	 * FreeMarker模板格式的邮件的方法
-	 * 
-	 * @param subject
-	 *            邮件的主题也就是邮件的标题
-	 * @param location
-	 *            文件的地址
-	 * @param emailAdress
-	 *            目的地
-	 * @param javaMailSender
-	 *            发送邮件的核心类（在xml文件中已经配置好了）
-	 * @param freeMarkerConfiguration
-	 *            freemarker配置管理类
-	 * @return
-	 * @throws TemplateException
-	 */
-	public String sendMailFreeMarker(String subject, String location, String emailAdress, JavaMailSender javaMailSender,
-			Configuration freeMarkerConfiguration) {
-		MimeMessage mMessage = javaMailSender.createMimeMessage();// 创建邮件对象
-		MimeMessageHelper mMessageHelper;
-		Properties prop = new Properties();
-		try {
-			// 从配置文件中拿到发件人邮箱地址
-			prop.load(this.getClass().getResourceAsStream("/mail.properties"));
-			String from = prop.get("mail.smtp.username") + "";
-			mMessageHelper = new MimeMessageHelper(mMessage, true);
-			// 发件人邮箱
-			mMessageHelper.setFrom(from);
-			// 收件人邮箱
-			mMessageHelper.setTo(emailAdress);
-			// 邮件的主题也就是邮件的标题
-			mMessageHelper.setSubject(subject);
-			// 解析模板文件
-			mMessageHelper.setText(getText(freeMarkerConfiguration), true);
-			// 通过文件路径获取文件名字
-			String filename = StringUtils.getFileName(location);
-			// 定义要发送的资源位置
-			File file = new File(location);
-			FileSystemResource resource = new FileSystemResource(file);
-			mMessageHelper.addAttachment(filename, resource);// 在邮件中添加一个附件
-			javaMailSender.send(mMessage);// 发送邮件
-		} catch (MessagingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return "发送成功";
-	}
-	
-  	/**
-	 * 读取freemarker模板的方法
-	 */
-	private String getText(Configuration freeMarkerConfiguration) {
-		String txt = "";
-		try {
-			Template template = freeMarkerConfiguration.getTemplate("email.ftl");
-			// 通过map传递动态数据
-			Map<String, Object> map = new HashMap<String, Object>();
-			map.put("user", "Snailclimb");
-			// 解析模板文件
-			txt = FreeMarkerTemplateUtils.processTemplateIntoString(template, map);
-			System.out.println("getText()->>>>>>>>>");// 输出的是HTML格式的文档
-			System.out.println(txt);
-		} catch (IOException e) {
-			// TODO 异常执行块！
-			e.printStackTrace();
-		} catch (TemplateException e) {
-			// TODO 异常执行块！
-			e.printStackTrace();
-		}
-
-		return txt;
-	}
-```
-
-我们通过`getText(Configuration freeMarkerConfiguration)`方法读取freemarker模板，返回的格式如下图所示：
-```html
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>测试</title>
-</head>
-
-<body>
-<h1>你好Snailclimb</h1>
-</body>
-</html>
-```
-其实就是HTML，然后我们就可以像前面发送HTML格式邮件的方式发送这端消息了。
-
-**email.ftl**
-
-```html
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>测试</title>
-</head>
-
-<body>
-<h1>你好${user}</h1>
-</body>
-</html>
-```
-
-**效果：**
-
-不知道为啥，腾讯每次把我使用模板引擎发的邮件直接放到垃圾箱。大家如果遇到接收不到邮件，但是又没报错的情况，可以看看是不是到了自己邮箱的垃圾箱。
-![](https://user-gold-cdn.xitu.io/2018/8/9/1651e5ea0aff60fd?w=1346&h=626&f=png&s=106930)
-### 基于Velocity模板引擎发送邮件
-
-```java
-	/**
-	 * 
-	 * @param subject
-	 *            邮件主题
-	 * @param location
-	 *            收件人地址
-	 * @param emailAdress
-	 *            目的地
-	 * @param javaMailSender
-	 *            发送邮件的核心类（在xml文件中已经配置好了）
-	 * @param velocityEngine
-	 *            Velocity模板引擎
-	 * @return
-	 */
-	public String sendMailVelocity(String subject, String location, String emailAdress, JavaMailSender javaMailSender,
-			VelocityEngine velocityEngine) {
-		MimeMessage mMessage = javaMailSender.createMimeMessage();// 创建邮件对象
-		MimeMessageHelper mMessageHelper;
-		Properties prop = new Properties();
-		try {
-			// 从配置文件中拿到发件人邮箱地址
-			prop.load(this.getClass().getResourceAsStream("/mail.properties"));
-			System.out.println(this.getClass().getResourceAsStream("/mail.properties"));
-			String from = prop.get("mail.smtp.username") + "";
-			mMessageHelper = new MimeMessageHelper(mMessage, true, "UTF-8");
-			// 发件人邮箱
-			mMessageHelper.setFrom(from);
-			// 收件人邮箱
-			mMessageHelper.setTo(emailAdress);
-			// 邮件的主题也就是邮件的标题
-			mMessageHelper.setSubject(subject);
-			Map<String, Object> map = new HashMap<>();
-			// 获取日期并格式化
-			Date date = new Date();
-			DateFormat bf = new SimpleDateFormat("yyyy-MM-dd E a HH:mm:ss");
-			String str = bf.format(date);
-			map.put("date", str);
-			String content = VelocityEngineUtils.mergeTemplateIntoString(velocityEngine, "email.vm", "UTF-8", map);
-			mMessageHelper.setText(content, true);
-			// 通过文件路径获取文件名字
-			String filename = StringUtils.getFileName(location);
-			// 定义要发送的资源位置
-			File file = new File(location);
-			FileSystemResource resource = new FileSystemResource(file);
-			mMessageHelper.addAttachment(filename, resource);// 在邮件中添加一个附件
-			// mMessageHelper.addAttachment("JavaApiRename.txt", resource2);//
-			// 在邮件中添加一个附件
-			javaMailSender.send(mMessage);// 发送邮件
-		} catch (MessagingException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return "发送成功";
-	}
-```
-
-**email.vm**
-
-```html
-<!DOCTYPE html>
-<html>
-<head lang="en">
-    <meta charset="UTF-8">
-    <title></title>
- 
-<body>
-<h3>今天的日期是:${date}</h3>
-
-</body>
-</html>
-```
-
-效果：
-![](https://user-gold-cdn.xitu.io/2018/8/9/1651e61fe3c103de?w=1191&h=563&f=png&s=40425)
-
-
-### controller层
-
-```java
+package com.snailclimb.bean;
 
 /**
- * 测试邮件发送controller
+ * 用户实体类
+ * 
  * @author Snailclimb
+ *
  */
-@RestController
-@RequestMapping("mail")
-public class SendMailController {
+public class User {
+	private Integer id;
+
+	private String userToken;
+
+	private String location;
+
+	private String business;
+
+	private String sex;
+
+	private String employment;
+
+	private String education;
+
+	private String username;
+
+	private String url;
+
+	private Integer agrees;
+
+	private Integer thanks;
+
+	private Integer asks;
+
+	private Integer answers;
+
+	private Integer posts;
+
+	private Integer followees;
+
+	private Integer followers;
+
+	private String hashid;
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getUserToken() {
+		return userToken;
+	}
+
+	public void setUserToken(String userToken) {
+		this.userToken = userToken == null ? null : userToken.trim();
+	}
+
+	public String getLocation() {
+		return location;
+	}
+
+	public void setLocation(String location) {
+		this.location = location == null ? null : location.trim();
+	}
+
+	public String getBusiness() {
+		return business;
+	}
+
+	public void setBusiness(String business) {
+		this.business = business == null ? null : business.trim();
+	}
+
+	public String getSex() {
+		return sex;
+	}
+
+	public void setSex(String sex) {
+		this.sex = sex == null ? null : sex.trim();
+	}
+
+	public String getEmployment() {
+		return employment;
+	}
+
+	public void setEmployment(String employment) {
+		this.employment = employment == null ? null : employment.trim();
+	}
+
+	public String getEducation() {
+		return education;
+	}
+
+	public void setEducation(String education) {
+		this.education = education == null ? null : education.trim();
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username == null ? null : username.trim();
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url == null ? null : url.trim();
+	}
+
+	public Integer getAgrees() {
+		return agrees;
+	}
+
+	public void setAgrees(Integer agrees) {
+		this.agrees = agrees;
+	}
+
+	public Integer getThanks() {
+		return thanks;
+	}
+
+	public void setThanks(Integer thanks) {
+		this.thanks = thanks;
+	}
+
+	public Integer getAsks() {
+		return asks;
+	}
+
+	public void setAsks(Integer asks) {
+		this.asks = asks;
+	}
+
+	public Integer getAnswers() {
+		return answers;
+	}
+
+	public void setAnswers(Integer answers) {
+		this.answers = answers;
+	}
+
+	public Integer getPosts() {
+		return posts;
+	}
+
+	public void setPosts(Integer posts) {
+		this.posts = posts;
+	}
+
+	public Integer getFollowees() {
+		return followees;
+	}
+
+	public void setFollowees(Integer followees) {
+		this.followees = followees;
+	}
+
+	public Integer getFollowers() {
+		return followers;
+	}
+
+	public void setFollowers(Integer followers) {
+		this.followers = followers;
+	}
+
+	public String getHashid() {
+		return hashid;
+	}
+
+	public void setHashid(String hashid) {
+		this.hashid = hashid == null ? null : hashid.trim();
+	}
+}
+```
+**ScoreResult.java**
+
+```java
+package com.snailclimb.bean;
+
+/**
+ * 圆饼图展示的时候需要使用到的对象
+ * 
+ * @author Snailclimb
+ *
+ */
+public class ScoreResult {
+	public int value; // 点赞数
+	public String name;// 人名
+
+	public float getValue() {
+		return value;
+	}
+
+	public void setValue(int value) {
+		this.value = value;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public ScoreResult(int value, String name) {
+		super();
+		this.value = value;
+		this.name = name;
+	}
+
+	@Override
+	public String toString() {
+		return "ScoreResult [value=" + value + ", name=" + name + "]";
+	}
+
+}
+
+```
+#### 3.2 dao层
+**UserMapper.java**
+```java
+package com.snailclimb.dao;
+
+import java.util.List;
+
+import com.snailclimb.bean.User;
+
+public interface UserMapper {
+	public List<User> selecAgreesTop10();
+}
+
+```
+**UserMapper.xml**
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.snailclimb.dao.UserMapper">
+	<select id="selecAgreesTop10" parameterType="User" resultType="User">
+		SELECT
+		`agrees`, `username`
+		FROM
+		`spider_zhihu_crawler`.`user`
+		GROUP BY
+		`agrees`
+		ORDER BY `agrees` DESC LIMIT 0,9;
+	</select>
+</mapper>
+```
+#### 3.3 service层
+**UserService.java**
+```java
+package com.snailclimb.service;
+
+import java.util.List;
+
+import com.snailclimb.bean.User;
+
+public interface UserService {
+	public List<User> selecAgreesTop10();
+}
+
+```
+#### 3.4 service实现层
+**UserServiceImpl.java**
+
+```
+package com.snailclimb.service.impl;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.snailclimb.bean.User;
+import com.snailclimb.dao.UserMapper;
+import com.snailclimb.service.UserService;
+
+@Service
+public class UserServiceImpl implements UserService {
 	@Autowired
-	private JavaMailSender javaMailSender;// 在spring中配置的邮件发送的bean
-	@Autowired
-	private Configuration configuration;
-	@Autowired
-	private VelocityEngine velocityEngine;
+	private UserMapper userMapper;
 
-	// text
-	@RequestMapping("send")
-	public String sendEmail() {
-		EmailUtils emailUtils = new EmailUtils();
-		return emailUtils.sendMail("大傻子大傻子大傻子，你好！！！", "发送给我家大傻子的~", "D:/picture/meizi.jpg", "1361583339@qq.com",
-				javaMailSender, false);
+	@Override
+	public List<User> selecAgreesTop10() {
+		return userMapper.selecAgreesTop10();
 	}
 
-	// html
-	@RequestMapping("send2")
-	public String sendEmail2() {
-		EmailUtils emailUtils = new EmailUtils();
-		return emailUtils.sendMail(
-				"<p>大傻子大傻子大傻子，你好！！！</p><br/>" + "<a href='https://github.com/Snailclimb'>点击打开我的Github!</a><br/>",
-				"发送给我家大傻子的~", "D:/picture/meizi.jpg", "1361583339@qq.com", javaMailSender, true);
-	}
-
-	// freemarker
-	@RequestMapping("send3")
-	public String sendEmail3() {
-		EmailUtils emailUtils = new EmailUtils();
-		return emailUtils.sendMailFreeMarker("发送给我家大傻子的~", "D:/picture/meizi.jpg", "1361583339@qq.com", javaMailSender,
-				configuration);
-
-	}
-
-	// velocity
-	@RequestMapping("send4")
-	public String sendEmail4() {
-		EmailUtils emailUtils = new EmailUtils();
-		return emailUtils.sendMailVelocity("发送给我家大傻子的~", "D:/picture/meizi.jpg", "1361583339@qq.com", javaMailSender,
-				velocityEngine);
-
-	}
 }
 
 ```
 
+#### 3.5 controller层
+
+```java
+package com.snailclimb.controller;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.snailclimb.bean.ScoreResult;
+import com.snailclimb.bean.User;
+import com.snailclimb.service.UserService;
+
+@Controller
+@RequestMapping(value = "/echarts")
+public class UserController {
+
+	@Autowired
+	private UserService userService;
+
+	/**
+	 * 折线图和直方图
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/agreeLineAndBar")
+	@ResponseBody
+	public List<User> getAgreesTop10() {
+		return userService.selecAgreesTop10();
+
+	}
+
+	/**
+	 * 圆饼图
+	 * 
+	 * @return
+	 */
+
+	@RequestMapping(value = "/agreePie")
+	@ResponseBody
+	public List<ScoreResult> getAgreesTop10T() {
+		List<User> list = userService.selecAgreesTop10();
+		List<ScoreResult> results = new ArrayList<ScoreResult>();
+		for (User user : list) {
+			ScoreResult scoreResult = new ScoreResult(user.getAgrees(), user.getUsername());
+			results.add(scoreResult);
+		}
+		return results;
+	}
+
+	// 跳转到圆饼图展示
+	@RequestMapping(value = "/intoagreePie")
+	public String intoagreePie() {
+		return "agreePie";
+
+	}
+
+	// 跳转到折线图和直方图
+	@RequestMapping(value = "/intoagreeLineAndBar")
+	public String Index() {
+		return "agreeLineAndBar";
+
+	}
+}
+```
+#### JSP页面
+由于JSP页面代码过多，大家可以直接去我上传在Github的源码上拷贝。下面我只贴一下Ajax请求的代码。
+
+下面以圆饼图为例，看看如何通过Ajax请求获取数据动态填充
+```html
+	<!-- 显示Echarts图表 -->
+	<div style="height:410px;min-height:100px;margin:0 auto;" id="main"></div>
+	<script>	//初始化echarts var pieCharts =
+		//初始化echarts
+		var pieCharts = echarts.init(document.getElementById("main"));
+		//设置属性
+		pieCharts.setOption({
+			title : {
+				text : '赞同数',
+				subtext : '赞同数比',
+				x : 'center'
+			},
+			tooltip : {
+				trigger : 'item',
+				formatter : "{a} <br/>{b} : {c} ({d}%)"
+			},
+			legend : {
+				orient : 'vertical',
+				x : 'left',
+				data : []
+			},
+			toolbox : {
+				show : true,
+				feature : {
+					mark : {
+						show : true
+					},
+					//数据视图
+					dataView : {
+						show : true,
+						readOnly : false
+					},
+					restore : {
+						show : true
+					},
+					//是否可以保存为图片
+					saveAsImage : {
+						show : true
+					}
+				}
+			},
+			calculable : true,
+			series : [
+				{
+					name : '赞同数',
+					type : 'pie',
+					radius : '55%',
+					center : [ '50%', '60%' ],
+					data : []
+				}
+			]
+		});
+	
+	
+		//显示一段动画
+		pieCharts.showLoading();
+	
+		//异步请求数据
+		$.ajax({
+			type : "post",
+			async : true,
+			url : '${pageContext.request.contextPath}/echarts/agreePie',
+			data : [],
+			dataType : "json",
+			success : function(result) {
+			  //如果请求的结果不为空，则填充数据，否则范围错误消息
+				if (result) {
+					pieCharts.hideLoading(); //隐藏加载动画
+					pieCharts.setOption({
+						series : [
+							{
+								data : result
+							}
+						]
+					});
+				} else {
+					//返回的数据为空时显示提示信息
+					alert("图表请求数据为空，可能服务器暂未录入近五天的观测数据，您可以稍后再试！");
+					pieCharts.hideLoading();
+				}
+			},
+			error : function(errorMsg) {
+				//请求失败时执行该函数
+				alert("图表请求数据失败，可能是服务器开小差了");
+				pieCharts.hideLoading();
+			}
+		})
+	</script>
+```
+
+
+**对应的Controller层代码：**
+
+```java
+	/**
+	 * 圆饼图
+	 */
+
+	@RequestMapping(value = "/agreePie")
+	@ResponseBody
+	public List<ScoreResult> getAgreesTop10T() {
+     	//查询数据
+		List<User> list = userService.selecAgreesTop10();  
+		List<ScoreResult> results = new ArrayList<ScoreResult>();
+		//将数据添加到results中
+		for (User user : list) {
+			ScoreResult scoreResult = new ScoreResult(user.getAgrees(), user.getUsername());
+			results.add(scoreResult);
+		}
+		//返回results
+		return results;
+	}
+
+```
+
+后台返回都是JSON格式的数据，如下图所示：
+
+![后台返回都是JSON格式的数据](https://user-gold-cdn.xitu.io/2018/7/24/164ca09c60cf1a44?w=778&h=202&f=png&s=14463)
+
+
 ## 四 总结
 
-上面我们总结了Spring发送邮件的四种正确姿势，并且将核心代码提供给了大家。代码中有我很详细的注释，所以我对于代码以及相关类的讲解很少，感兴趣的同学可以自行学习。最后，本项目Github地址：[https://github.com/Snailclimb/J2ee-Advanced](https://github.com/Snailclimb/J2ee-Advanced)。
+这里只是以知乎赞同数TOP10为例子，带着大家学习了SSM环境的搭建以及代码的编写，代码中有很详细的注释。
 
-##  五 推荐一个自己的开源的后端文档
+通过本例子，大家完全可以自己做一个知乎粉丝数TOP、知乎感谢数TOP10等等例子出来。
 
-Java-Guide： Java面试通关手册（Java学习指南）。（star:1.4k）
+另外本例子知识演示了圆饼图、折线图、柱状图的使用，大家可以自己去[Echarts官网](http://echarts.baidu.com/index.html)深入学习。
 
-Github地址：[https://github.com/Snailclimb/Java-Guide](https://github.com/Snailclimb/Java-Guide)
+最后，本项目只是一个演示，还有很多需要优化的地方。比如可以使用redis来做缓存提高查询速度、可以创建索引提高查询速度或者直接将查询到的数据缓存下来等等方法来提高查询速度。
 
-文档定位：一个专门为Java后端工程师准备的开源文档，相信不论你是Java新手还是已经成为一名Java工程师都能从这份文档中收获到一些东西。
+## 五 补充
 
-> 你若盛开，清风自来。 欢迎关注我的微信公众号：“Java面试通关手册”，一个有温度的微信公众号。公众号有大量资料，回复关键字“1”你可能看到想要的东西哦！
+### 使用索引优化查询速度：
+效果图如下，可以看到明显查询速度快了很多。
+![](https://user-gold-cdn.xitu.io/2018/7/24/164cc232fe4daec7?w=1370&h=649&f=gif&s=431697)
 
 
-![](https://user-gold-cdn.xitu.io/2018/7/5/1646a3d308a8db1c?w=258&h=258&f=jpeg&s=27034)
+我使用的是SQLyoy创建的索引，具体方法如下图所示：
+
+![SQLyoy创建索引](https://user-gold-cdn.xitu.io/2018/7/24/164cc256d65b6266?w=1115&h=456&f=png&s=56412)
+
+
+### 简单改进使直方图以及立方图可以显示最大值、最小值以及平局值：
+效果图如下
+![](http://my-blog-to-use.oss-cn-beijing.aliyuncs.com/18-7-26/40933861.jpg)
+改进方法（修改series代码如下）：
+
+```js
+//series[i]:系列列表。每个系列通过 type 决定自己的图表类型
+series : [ //系列（内容）列表                      
+	{
+		name : '赞同数',
+		type : 'line', //折线图表示（生成温度曲线）
+		symbol : 'emptycircle', //设置折线图中表示每个坐标点的符号；emptycircle：空心圆；emptyrect：空心矩形；circle：实心圆；emptydiamond：菱形	                    
+		data : [], //数据值通过Ajax动态获取
+		//图标上显示出最大值和最小值
+		markPoint : {
+			data : [ {
+				type : 'max',
+				name : '最大值'
+			}, {
+				type : 'min',
+				name : '最小值'
+			} ],
+		},
+		//图标上显示平局值
+		markLine : {
+			data : [ {
+				type : 'average',
+				name : '平均值'
+			} ]
+		}
+	},
+]
+```
+
+### 修改圆饼图legend图例：
+效果如下：
+
+![](http://my-blog-to-use.oss-cn-beijing.aliyuncs.com/18-7-26/43938136.jpg)
+
+改进方法：
+将异步请求的代码改成如下所示。
+```js
+var names = [];
+//异步请求数据
+$.ajax({
+	type : "post",
+	async : true,
+	url : '${pageContext.request.contextPath}/echarts/agreePie',
+	data : [],
+	dataType : "json",
+	success : function(result) {
+
+		if (result) {
+			for (var i = 0; i < result.length; i++) {
+				names.push(result[i].name); //挨个取出类别并填入类别数组
+			}
+			pieCharts.hideLoading(); //隐藏加载动画
+			pieCharts.setOption({
+				series : [
+					{
+						data : result
+					}
+				],
+				legend : {
+					data : names
+				}
+			});
+		} else {
+			//返回的数据为空时显示提示信息
+			alert("图表请求数据为空，可能服务器暂未录入近五天的观测数据，您可以稍后再试！");
+			pieCharts.hideLoading();
+		}
+	},
+```
+
+
