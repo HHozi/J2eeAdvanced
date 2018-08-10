@@ -1,4 +1,4 @@
-<a target="_blank" href="//shang.qq.com/wpa/qunwpa?idkey=f9625667874425d093f99cc2f0d6db11d408ffcf819c6f7e0bb8b0d429c611f7"><img border="0" src="//pub.idqqimg.com/wpa/images/group.png" alt="长大计科2栋118" title="长大计科2栋118"></a>
+
 ## 本开源仓库已经开源的JavaWeb进阶项目
 ### 一 SSM项目中整合Echarts开发
 
